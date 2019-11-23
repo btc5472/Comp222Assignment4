@@ -18,7 +18,7 @@ int* option_1_enter_parameters();
 void option_2_read_cache();
 void option_3_write_cache();
 
-struct node
+struct line
 {
 	int tag;
 	int *line_block_ptr;
@@ -27,7 +27,7 @@ struct node
 
 int main()
 {
-	int choice = 0;
+	int choice = 0, block_size = 0;
 
 	do {
 		printf("\nMain Menu - Main Memory to Cache Memory Mapping\n"
@@ -72,7 +72,7 @@ option_1_enter_parameters()
 		exit(0);
 	}
 
-	printf("Enter cache size (words): ]\n");
+	printf("Enter cache size (words): \n");
 	if (!scanf("%d", &cache_size)) {
 		printf("Count not read user input for cache size. Now exitting.\n");
 		exit(0);
@@ -81,7 +81,7 @@ option_1_enter_parameters()
 	printf("Enter block size (words/block): \n");
 	if (!scanf("%d", &block_size)) {
 		printf("*** Error - Cache Size is not a Power of 2\n\n");
-		arr[0] = NULL;
+		arr_of_sizes[0] = NULL;
 	}
 
 	// Make sure all user input values are valid
@@ -123,6 +123,12 @@ option_1_enter_parameters()
 		main_memory_ptr[i] = --main_memory_size;
 	}
 
+	cache_ptr = (struct line*)malloc(cache_size * block_size * sizeof(struct line));
+	for (int i = 0; i < cache_size; i++) {
+		cache_ptr[i].tag = -1;
+		cache_ptr[i].line_block_ptr = NULL;
+	}
+
 	arr_of_sizes[0] = main_memory_size;
 	arr_of_sizes[1] = cache_size;
 	arr_of_sizes[2] = block_size;
@@ -142,7 +148,7 @@ option_2_read_cache()
 		return;
 	}
 
-	create_cache(arr);
+
 
 	return;
 }
@@ -166,18 +172,6 @@ option_3_write_cache()
 	}
 
 	return;
-}
-
-
-void
-create_cache(int arr_of_sizes[]) {
-	int main_memory_size = arr_of_sizes[0], cache_size = arr_of_sizes[1], block_size = arr_of_sizes[1], tag = 0;
-
-	cache_ptr = (struct node*)malloc(block_size * sizeof(struct node));
-	for (i = 0; i < cache_size; i++) {
-		cache_ptr[i].line_block_ptr = NULL;
-	}
-
 }
 
 
