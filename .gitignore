@@ -3,3 +3,6 @@ Assignment4.vcxproj.filters
 Assignment4.vcxproj
 Debug
 .vs
+.cproject
+.project
+.settings/
