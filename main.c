@@ -79,8 +79,8 @@ int main()
 		free(cache_ptr);
 		free(main_memory_ptr);
 	}
-
 	printf("*** Memory Freed Up - Program Terminated Normally\n\n");
+
 	return 0;
 }
 
@@ -129,7 +129,7 @@ option_1_enter_parameters(int arr_of_sizes[])
 		arr_of_sizes[0] = -1;
 	}
 
-	// If there were no errors in user input then allocate memory & return input data
+	// If there are no errors in user input then allocate memory & return input data
 	if (arr_of_sizes[0] != -1) {
 		printf("\n*** All Input Parameters Accepted.\nStarting to Process Write/Read Requests\n");
 
@@ -207,6 +207,7 @@ option_2_read_cache(int arr_of_sizes[])
 		printf("*** Word %d of Cache Line %d with Tag %d contains the Value %d\n",
 			word, line_in_cache, tag, value);
 	}
+
 	return;
 }
 
