@@ -34,6 +34,7 @@ struct line
 int* main_memory_ptr = NULL;
 
 
+
 int main()
 {
 	int choice = 0;
@@ -67,7 +68,7 @@ int main()
 				option_3_write_cache(arr_of_sizes);
 			}
 		}
-		else {
+		else if (choice != 4) {
 			printf("*** Error - Invalid Menu Option Selected\n");
 		}
 	} while (choice != 4);
@@ -85,6 +86,7 @@ int main()
 }
 
 
+
 // Asks the user to enter 3 size parameters. Then verify that the parameters are valid. If they
 // are valid then allocate memory for the cache & main memory & initialize their values.
 void
@@ -97,13 +99,11 @@ option_1_enter_parameters(int arr_of_sizes[])
 		printf("Count not read user input for main memory. Now exitting.\n");
 		exit(0);
 	}
-
 	printf("Enter cache size (words): \n");
 	if (!scanf("%d", &cache_size)) {
 		printf("Count not read user input for cache size. Now exitting.\n");
 		exit(0);
 	}
-
 	printf("Enter block size (words/block): \n");
 	if (!scanf("%d", &block_size)) {
 		printf("Could not read user input for block size. Now exitting.\n");
@@ -129,17 +129,16 @@ option_1_enter_parameters(int arr_of_sizes[])
 		arr_of_sizes[0] = -1;
 	}
 
-	// If there are no errors in user input then allocate memory & return input data
+	// If there are no errors in user input then allocate memory, allocate cache, & set arr_of_sizes
 	if (arr_of_sizes[0] != -1) {
 		printf("\n*** All Input Parameters Accepted.\nStarting to Process Write/Read Requests\n");
-
 		main_memory_ptr = (int*)malloc(main_memory_size * 2 * sizeof(int));
 		int count = main_memory_size + 1;
 		for (int i = 0; i < main_memory_size; i++) {
 			main_memory_ptr[i] = --count;
 		}
 
-		num_of_blocks_in_cache = (cache_size / block_size);
+		num_of_blocks_in_cache = cache_size / block_size;
 		cache_ptr = (struct line*)malloc(num_of_blocks_in_cache * sizeof(struct line));
 		for (int i = 0; i < num_of_blocks_in_cache; i++) {
 			cache_ptr[i].tag = -1;
@@ -154,6 +153,8 @@ option_1_enter_parameters(int arr_of_sizes[])
 	return;
 }
 
+
+
 // Reads a value from cache based on the main memory address. If the requested value isnt in cache
 //  then that is considered a cache miss (other wise it will be a chache hit) & the value will be
 //  read from main memory & then the main memory block associated with the main memory address
@@ -161,32 +162,25 @@ option_1_enter_parameters(int arr_of_sizes[])
 void
 option_2_read_cache(int arr_of_sizes[])
 {
-	int cache_size = arr_of_sizes[1], cache_block_size = arr_of_sizes[2], line_in_cache = -1,
-		total_lines_in_cache = 0, tag = -1, num_of_tags = 0, word = -1;
-	int main_memory_address = -1, block_in_mm = -1, value = 0, total_blocks_in_mm = 0,
-		mm_block_size = arr_of_sizes[2], mm_size = arr_of_sizes[0], block_address_in_mm = -1,
-		num_of_words_in_mm_that_can_be_represented_by_cache_block = 0;
+	int m_m_size = arr_of_sizes[0], m_m_address = -1; // "m_m" stands for "main memory"
 
-	printf("Enter Main Memory Address to Read: \n");
-	if (!scanf("%d", &main_memory_address)) {
-		printf("Could not read user input for main memory address.\n");
+	printf("Enter Main Memory Address to Read: \n\n");
+	if (!scanf("%d", &m_m_address)) {
+		printf("\nCould not read user input for main memory address.\n");
 		return;
 	}
-	if (main_memory_address >= mm_size) {
-		printf("\n*** Error - Read Address Exceeds Memory Address Space\n");
+	if (m_m_address >= m_m_size) {
+		printf("*** Error – Read Address Exceeds Memory Address Space\n");
 		return;
 	}
 
-	total_lines_in_cache = cache_size / cache_block_size;
-	total_blocks_in_mm = mm_size / mm_block_size;
-	num_of_tags = total_blocks_in_mm / (total_lines_in_cache);
-	num_of_words_in_mm_that_can_be_represented_by_cache_block = (num_of_tags * cache_block_size);
-	line_in_cache = main_memory_address / (num_of_words_in_mm_that_can_be_represented_by_cache_block);
-	tag = ((main_memory_address) % (num_of_words_in_mm_that_can_be_represented_by_cache_block))
-		/ (cache_block_size);
-	block_in_mm = main_memory_address / cache_block_size;
-	block_address_in_mm = block_in_mm * mm_block_size;
-	word = main_memory_address % mm_block_size;
+	int block_size = arr_of_sizes[2];
+	int block_in_m_m = m_m_address / block_size;
+	int block_address_in_m_m = block_in_m_m * block_size;
+	int cache_size = arr_of_sizes[1], line_in_cache = ((m_m_address % cache_size) / block_size);
+	int tag = m_m_address / cache_size;
+	int word = m_m_address % block_size;
+	int value = -1;
 
 	if (cache_ptr[line_in_cache].tag == tag) {
 		printf("\n*** Cache Hit\n");
@@ -196,13 +190,13 @@ option_2_read_cache(int arr_of_sizes[])
 	}
 	else {
 		printf("\n*** Read Miss - First Load Block from Memory\n");
-		value = main_memory_ptr[main_memory_address];
+		value = main_memory_ptr[m_m_address];
 		cache_ptr[line_in_cache].tag = tag;
 		if (cache_ptr[line_in_cache].line_block_ptr == NULL) {
-			cache_ptr[line_in_cache].line_block_ptr = (int*)malloc(cache_block_size * sizeof(int));
+			cache_ptr[line_in_cache].line_block_ptr = (int*)malloc(block_size * sizeof(int));
 		}
-		for (int i = 0; i < cache_block_size; i++) {
-			cache_ptr[line_in_cache].line_block_ptr[i] = main_memory_ptr[block_address_in_mm + i];
+		for (int i = 0; i < block_size; i++) {
+			cache_ptr[line_in_cache].line_block_ptr[i] = main_memory_ptr[block_address_in_m_m + i];
 		}
 		printf("*** Word %d of Cache Line %d with Tag %d contains the Value %d\n",
 			word, line_in_cache, tag, value);
@@ -212,28 +206,33 @@ option_2_read_cache(int arr_of_sizes[])
 }
 
 
-// Write a value to the cache &  memory (write back). If the memory block is in the cache then
+
+// Write a value to the cache & memory (write back). If the memory block is in the cache then
 // its considered a cache hit so the value to written to cache & then to mem. If the memory
-// block isn't in cache then the value will be written to mem & the block will be copied to cache
+// block isn't in cache (cache miss) then the value will be written to mem & the block will be
+// copied to cache
 void
 option_3_write_cache(int arr_of_sizes[])
 {
-	int cache_size = arr_of_sizes[1], cache_block_size = arr_of_sizes[2], line_in_cache = -1,
-		total_lines_in_cache = 0, tag = -1, num_of_tags = 0, word = -1;
-	int main_memory_address = -1, block_in_mm = -1, value = 0, total_blocks_in_mm = 0,
-		mm_block_size = arr_of_sizes[2], mm_size = arr_of_sizes[0], block_address_in_mm = -1,
-		num_of_words_in_mm_that_can_be_represented_by_cache_block = 0;
+	int m_m_size = arr_of_sizes[0], m_m_address = -1, value = -1; // "m_m" stands for "main memory"
 
-	printf("Enter Main Memory Address to Write:\n");
-	if (!scanf("%d", &main_memory_address)) {
-		printf("Could not read user input for main memory address.\n");
+	printf("Enter Main Memory Address to Write:\n\n");
+	if (!scanf("%d", &m_m_address)) {
+		printf("\nCould not read user input for main memory address.\n");
 		return;
 	}
-	if (main_memory_address >= mm_size) {
-		printf("\n*** Error - Write Address Exceeds Memory Address Space\n");
+	if (m_m_address >= m_m_size) {
+		printf("*** Error – Write Address Exceeds Memory Address Space\n");
 		scanf("%d", &value);	// Read value to write and discard it
 		return;
 	}
+
+	int block_size = arr_of_sizes[2];
+	int block_in_m_m = m_m_address / block_size;
+	int block_address_in_m_m = block_in_m_m * block_size;
+	int cache_size = arr_of_sizes[1], line_in_cache = ((m_m_address % cache_size) / block_size);
+	int tag = m_m_address / cache_size;
+	int word = m_m_address % block_size;
 
 	printf("Enter Value to Write:\n");
 	if (!scanf("%d", &value)) {
@@ -241,33 +240,22 @@ option_3_write_cache(int arr_of_sizes[])
 		return;
 	}
 
-	total_lines_in_cache = cache_size / cache_block_size;
-	total_blocks_in_mm = mm_size / mm_block_size;
-	num_of_tags = total_blocks_in_mm / (total_lines_in_cache);
-	num_of_words_in_mm_that_can_be_represented_by_cache_block = (num_of_tags * cache_block_size);
-	line_in_cache = main_memory_address / (num_of_words_in_mm_that_can_be_represented_by_cache_block);
-	tag = ((main_memory_address) % (num_of_words_in_mm_that_can_be_represented_by_cache_block))
-				/ (cache_block_size);
-	block_in_mm = main_memory_address / cache_block_size;
-	block_address_in_mm = block_in_mm * mm_block_size;
-	word = main_memory_address % mm_block_size;
-
 	if (cache_ptr[line_in_cache].tag == tag) {
 		printf("\n*** Cache Hit\n");
 		cache_ptr[line_in_cache].line_block_ptr[word] = value;
-		main_memory_ptr[main_memory_address] = value;
+		main_memory_ptr[m_m_address] = value;
 		printf("*** Word %d of Cache Line %d with Tag %d contains the Value %d\n",
 			word, line_in_cache, tag, value);
 	}
 	else {
 		printf("\n*** Write Miss - First load block from memory\n");
-		main_memory_ptr[main_memory_address] = value;
+		main_memory_ptr[m_m_address] = value;
 		cache_ptr[line_in_cache].tag = tag;
 		if (cache_ptr[line_in_cache].line_block_ptr == NULL) {
-			cache_ptr[line_in_cache].line_block_ptr = (int*)malloc(cache_block_size * sizeof(int));
+			cache_ptr[line_in_cache].line_block_ptr = (int*)malloc(block_size * sizeof(int));
 		}
-		for (int i = 0; i < cache_block_size; i++) {
-			cache_ptr[line_in_cache].line_block_ptr[i] = main_memory_ptr[block_address_in_mm + i];
+		for (int i = 0; i < block_size; i++) {
+			cache_ptr[line_in_cache].line_block_ptr[i] = main_memory_ptr[block_address_in_m_m + i];
 		}
 		printf("*** Word %d of Cache Line %d with Tag %d contains the Value %d\n",
 			word, line_in_cache, tag, value);
@@ -275,6 +263,7 @@ option_3_write_cache(int arr_of_sizes[])
 
 	return;
 }
+
 
 
 int size_is_0_or_not_pow_of_2(int size) {
